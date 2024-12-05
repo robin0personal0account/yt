@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPI Payment for YouTube Premium</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
+      animation: backgroundMove 6s linear infinite;
+    }
+    :root {
+      --bg-gradient: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      --text-color: #fff;
+      --container-bg: rgba(15, 52, 96, 0.95);
+      --button-bg: linear-gradient(135deg, #4e54c8, #8f94fb);
+      --glow-color: rgba(78, 84, 200, 0.7);
+    }
+    .light {
+      --bg-gradient: linear-gradient(135deg, #e8eff1, #cfd9df);
+      --text-color: #333;
+      --container-bg: #ffffff;
+      --button-bg: linear-gradient(135deg, #f39c12, #f1c40f);
+      --glow-color: rgba(243, 156, 18, 0.7);
+    }
+    .container {
+      width: 90%;
+      max-width: 400px;
+      background: var(--container-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-sizing: border-box;
+      box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: var(--text-color);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1rem;
+      text-align: left;
+    }
+    input, select, button {
+      width: 100%;
+      max-width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input, select {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+    button {
+      background: var(--button-bg);
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0px 4px 12px rgba(78, 84, 200, 0.6);
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 6px 15px rgba(78, 84, 200, 0.8);
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+    #qr-container {
+      display: none;
+      margin-top: 20px;
+      animation: glow 2s infinite;
+    }
+    #qr-code {
+      margin: 20px auto;
+      display: block;
+      border: 4px solid var(--text-color);
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px var(--glow-color);
+    }
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0px 0px 15px var(--glow-color);
+      }
+      50% {
+        box-shadow: 0px 0px 25px var(--glow-color);
+      }
+    }
+    @keyframes backgroundMove {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    .social-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+    }
+    .social-buttons a {
+      text-decoration: none;
+      color: #fff;
+      background: var(--button-bg);
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      box-shadow: 0px 4px 12px rgba(78, 84, 200, 0.6);
+    }
+    .social-buttons a:hover {
+      transform: scale(1.05);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="theme-toggle" onclick="toggleTheme()">🌙 Switch Theme</div>
+    <h1>UPI Payment for YouTube Premium</h1>
+    <form id="paymentForm">
+      <label for="accounts">Number of Accounts:</label>
+      <input type="number" id="accounts" placeholder="Enter number of accounts" min="1" required oninput="calculateAmount()" onfocus="speak('Enter the number of accounts')" />
+
+      <label for="amount">Total Amount (<span id="currency-symbol">₹</span>):</label>
+      <input type="text" id="amount" readonly />
+
+      <button type="button" onclick="generateQRCode()">Generate QR Code</button>
+      <button type="button" onclick="openUPIApp()">Pay via UPI App</button>
+    </form>
+
+    <div id="qr-container">
+      <canvas id="qr-code"></canvas>
+      <div class="social-buttons">
+        <a href="#" id="whatsapp-share" target="_blank">Share QR on WhatsApp</a>
+        <a href="#" id="telegram-share" target="_blank">Share QR on Telegram</a>
+        <a href="#" id="download-qr" download="upi-qr-code.png">Download QR Code</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const qrContainer = document.getElementById("qr-container");
+    const qrCodeCanvas = document.getElementById("qr-code");
+    const accountsInput = document.getElementById("accounts");
+    const amountInput = document.getElementById("amount");
+
+    function calculateAmount() {
+      const accounts = parseInt(accountsInput.value) || 0;
+      const totalAmount = accounts * 60; // Price per account is 60
+      amountInput.value = `₹${totalAmount}`;
+    }
+
+    function generateQRCode() {
+      const accounts = parseInt(accountsInput.value);
+      const amount = accounts * 60;
+
+      if (!accounts || accounts <= 0) {
+        speak("Please enter a valid number of accounts");
+        return;
+      }
+
+      const upiUrl = `upi://pay?pa=louis@superyes&pn=YouTubePremium&am=${amount}&tn=Payment for ${accounts} accounts&cu=INR`;
+
+      QRCode.toCanvas(qrCodeCanvas, upiUrl, { width: 200 }, (error) => {
+        if (error) console.error(error);
+
+        qrContainer.style.display = "block";
+
+        // Convert QR Code to Data URL
+        const qrImageUrl = qrCodeCanvas.toDataURL("image/png");
+        setSocialLinks(qrImageUrl);
+        speak("QR code generated successfully");
+
+        // Set Download Link
+        const downloadLink = document.getElementById("download-qr");
+        downloadLink.href = qrImageUrl;
+      });
+    }
+
+    function setSocialLinks(qrImageUrl) {
+      const whatsappShare = document.getElementById("whatsapp-share");
+      const telegramShare = document.getElementById("telegram-share");
+
+      const message = `Pay for YouTube Premium accounts via UPI using this QR code!`;
+
+      // WhatsApp Share Link
+      whatsappShare.href = `https://wa.me/?text=${encodeURIComponent(message)}&url=${qrImageUrl}`;
+
+      // Telegram Share Link
+      telegramShare.href = `https://t.me/share/url?url=${qrImageUrl}&text=${encodeURIComponent(message)}`;
+    }
+
+    function openUPIApp() {
+      const accounts = parseInt(accountsInput.value);
+      const amount = accounts * 60;
+
+      if (!accounts || accounts <= 0) {
+        speak("Please enter a valid number of accounts");
+        return;
+      }
+
+      const upiUrl = `upi://pay?pa=louis@superyes&pn=YouTubePremium&am=${amount}&tn=Payment for ${accounts} accounts&cu=INR`;
+      window.location.href = upiUrl;
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("light");
+      speak("Theme toggled");
+    }
+
+    function speak(text) {
+      const msg = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(msg);
+    }
+  </script>
+</body>
+</html>
