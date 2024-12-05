@@ -139,6 +139,9 @@
     <div class="theme-toggle" onclick="toggleTheme()">🌙 Switch Theme</div>
     <h1>UPI Payment for YouTube Premium</h1>
     <form id="paymentForm">
+      <label for="name">Your Name:</label>
+      <input type="text" id="name" placeholder="Enter your name" required onfocus="speak('Enter your name')" />
+
       <label for="accounts">Number of Accounts:</label>
       <input type="number" id="accounts" placeholder="Enter number of accounts" min="1" required oninput="calculateAmount()" onfocus="speak('Enter the number of accounts')" />
 
@@ -167,20 +170,21 @@
 
     function calculateAmount() {
       const accounts = parseInt(accountsInput.value) || 0;
-      const totalAmount = accounts * 60; // Price per account is 60
+      const totalAmount = accounts * 64.50; // Price per account is 60
       amountInput.value = `₹${totalAmount}`;
     }
 
     function generateQRCode() {
+      const name = document.getElementById("name").value;
       const accounts = parseInt(accountsInput.value);
-      const amount = accounts * 60;
+      const amount = accounts * 64.50;
 
-      if (!accounts || accounts <= 0) {
-        speak("Please enter a valid number of accounts");
+      if (!name || !accounts || accounts <= 0) {
+        speak("Please enter your name and a valid number of accounts");
         return;
       }
 
-      const upiUrl = `upi://pay?pa=louis@superyes&pn=YouTubePremium&am=${amount}&tn=Payment for ${accounts} accounts&cu=INR`;
+      const upiUrl = `upi://pay?pa=louis@superyes&pn=${encodeURIComponent(name)}&am=${amount}&tn=Payment for ${accounts} accounts by ${encodeURIComponent(name)}&cu=INR`;
 
       QRCode.toCanvas(qrCodeCanvas, upiUrl, { width: 200 }, (error) => {
         if (error) console.error(error);
@@ -212,15 +216,16 @@
     }
 
     function openUPIApp() {
+      const name = document.getElementById("name").value;
       const accounts = parseInt(accountsInput.value);
       const amount = accounts * 60;
 
-      if (!accounts || accounts <= 0) {
-        speak("Please enter a valid number of accounts");
+      if (!name || !accounts || accounts <= 0) {
+        speak("Please enter your name and a valid number of accounts");
         return;
       }
 
-      const upiUrl = `upi://pay?pa=louis@superyes&pn=YouTubePremium&am=${amount}&tn=Payment for ${accounts} accounts&cu=INR`;
+      const upiUrl = `upi://pay?pa=louis@superyes&pn=${encodeURIComponent(name)}&am=${amount}&tn=Payment for ${accounts} accounts by ${encodeURIComponent(name)}&cu=INR`;
       window.location.href = upiUrl;
     }
 
@@ -235,4 +240,4 @@
     }
   </script>
 </body>
-</html>
+</html
